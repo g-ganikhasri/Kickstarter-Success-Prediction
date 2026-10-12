@@ -1,96 +1,169 @@
 # Kickstarter Project Success Prediction
 
-A machine learning mini-project that predicts whether a Kickstarter crowdfunding project will be successful or failed using project information available before the campaign outcome is known.
+A machine learning project that predicts whether a Kickstarter crowdfunding project will be **successful or failed** using information available about the project before its final outcome.
 
-## 1. Problem Statement
+---
 
-Kickstarter hosts a large number of crowdfunding campaigns across different categories, countries, and currencies. The success of a campaign can depend on factors such as its funding goal, campaign duration, category, launch timing, and other project metadata.
+## Project Overview
 
-The objective of this project is to build a classification system that uses these pre-outcome project characteristics to predict whether a Kickstarter project will be successful (1) or failed (0).
+Crowdfunding platforms such as Kickstarter host thousands of projects across different categories. However, many projects fail to reach their funding goals.
 
-## 2. Dataset
+This project develops and compares multiple machine learning classification models to predict Kickstarter project outcomes based on project characteristics such as:
 
-The project uses the Kickstarter Projects 2018 dataset.
+- Funding goal
+- Campaign duration
+- Launch year and month
+- Project name length
+- Main category
+- Sub-category
+- Country
+- Currency
 
-- Dataset file: `ks-projects-201801.csv`
-- Original dataset size: 378,661 projects
-- Projects retained for this study: 331,675
-- Only projects with `successful` or `failed` states are used.
-- Projects with other/unknown states are removed.
+The project focuses on avoiding **data leakage** by excluding variables that directly reveal the final outcome of a campaign.
 
-### Target Variable
+---
 
-| Value | Meaning |
-|---|---|
-| `0` | Failed |
-| `1` | Successful |
+## Problem Statement
 
-## 3. Features Used
+The objective is to build a machine learning model that can predict whether a Kickstarter project will be:
 
-Only information that can be available before the final campaign outcome is used as a predictor.
+- **Successful (1)**
+- **Failed (0)**
 
-### Numerical Features
+The prediction is based only on information that could reasonably be available when evaluating a project, rather than using its final funding performance.
 
-- `goal` — funding goal of the project
-- `duration_days` — campaign duration calculated from launch and deadline
-- `launch_year` — year in which the campaign was launched
-- `launch_month` — month in which the campaign was launched
-- `name_length` — number of characters in the project name
+---
 
-### Categorical Features
+## Dataset
 
-- `main_category`
-- `category`
-- `country`
-- `currency`
+The project uses the **Kickstarter Projects 2018** dataset.
 
-### Features Excluded
+### Dataset source
 
-Outcome-related variables such as `pledged`, `backers`, `usd pledged`, and `usd_pledged_real` are not used because they are associated with the campaign outcome and would introduce data leakage.
+**Kaggle:** Kickstarter Projects dataset by `kemical`
 
-## 4. Data Preprocessing
+The dataset contains Kickstarter campaigns collected between **2009 and 2018**.
+
+### Original dataset
+
+- **378,661 projects**
+- **15 variables**
+
+### After preprocessing
+
+Projects with states other than `successful` and `failed` were removed.
+
+Final dataset:
+
+- **331,675 projects**
+- **9 input features**
+- **1 binary target variable**
+
+### Target distribution
+
+| Target | Meaning | Count |
+|---|---|---:|
+| 0 | Failed | 197,719 |
+| 1 | Successful | 133,956 |
+
+---
+
+## Features Used
+
+The following features are used for prediction:
+
+| Feature | Description | Type |
+|---|---|---|
+| `goal` | Funding goal of the project | Numerical |
+| `duration_days` | Campaign duration in days | Numerical |
+| `launch_year` | Year the campaign was launched | Numerical |
+| `launch_month` | Month the campaign was launched | Numerical |
+| `name_length` | Number of characters in project name | Numerical |
+| `main_category` | Main project category | Categorical |
+| `category` | Specific project category | Categorical |
+| `country` | Country of the project | Categorical |
+| `currency` | Campaign currency | Categorical |
+
+### Features excluded to prevent data leakage
+
+The following variables were deliberately excluded:
+
+- `pledged`
+- `backers`
+- `usd pledged`
+- `usd_pledged_real`
+
+These variables contain information about the funding performance of a project and therefore would reveal information about the final outcome.
+
+---
+
+## Data Preprocessing
 
 The following preprocessing steps are performed:
 
-1. Load the Kickstarter CSV dataset.
-2. Keep only projects labelled `successful` or `failed`.
-3. Convert the project state into a binary target variable.
-4. Convert launch and deadline columns to datetime format.
-5. Calculate campaign duration.
-6. Extract launch year and launch month.
-7. Calculate project-name length.
+1. Remove projects whose state is not `successful` or `failed`.
+2. Convert the project state into a binary target:
+   - `failed → 0`
+   - `successful → 1`
+3. Convert `launched` and `deadline` into datetime values.
+4. Calculate campaign duration in days.
+5. Extract launch year.
+6. Extract launch month.
+7. Calculate project name length.
 8. Separate numerical and categorical features.
 9. Standardize numerical features using `StandardScaler`.
 10. One-hot encode categorical features using `OneHotEncoder`.
-11. Split the dataset into training and testing sets using an 80:20 stratified split.
+11. Split the dataset into training and testing sets using an 80/20 stratified split.
 
-The preprocessing and model are combined using a scikit-learn `Pipeline` and `ColumnTransformer`.
+---
 
-## 5. Machine Learning Models
+## Machine Learning Models
 
-Four classification models are evaluated:
+Four classification approaches were evaluated:
 
-1. Logistic Regression
-2. Random Forest — 100 trees
-3. Random Forest — 200 trees
-4. Gradient Boosting
+### 1. Logistic Regression
 
-The purpose of comparing multiple models is to determine which approach provides the most useful balance for the binary classification task.
+Used as a baseline classification model.
 
-## 6. Evaluation Metrics
+### 2. Random Forest – 100 Trees
 
-The models are evaluated using:
+An ensemble of 100 decision trees.
 
-- Accuracy — proportion of all predictions that are correct.
-- Precision — proportion of predicted successful projects that are actually successful.
-- Recall — proportion of actual successful projects correctly identified.
-- F1 Score — harmonic mean of precision and recall.
+### 3. Random Forest – 200 Trees
 
-A confusion matrix is also generated for the final model.
+An ensemble of 200 decision trees. This model was selected as the final model based on its overall F1 performance and successful-class recall.
 
-## 7. Results
+### 4. Gradient Boosting
 
-The results below are generated automatically by `train_models.py` from predictions on the held-out test set.
+An ensemble boosting method that builds trees sequentially to improve prediction performance.
+
+---
+
+## Evaluation Metrics
+
+The models were evaluated using:
+
+### Accuracy
+
+The proportion of total predictions that were correct.
+
+### Precision
+
+Measures how many projects predicted as successful were actually successful.
+
+### Recall
+
+Measures how many of the actually successful projects were correctly identified.
+
+### F1 Score
+
+The harmonic mean of precision and recall, providing a balance between the two.
+
+---
+
+## Results
+
+The models were evaluated on the same held-out test set.
 
 | Model | Accuracy | Precision | Recall | F1 Score |
 |---|---:|---:|---:|---:|
@@ -99,218 +172,29 @@ The results below are generated automatically by `train_models.py` from predicti
 | **Random Forest (200 trees)** | **67.55%** | **61.44%** | **52.76%** | **56.77%** |
 | Gradient Boosting | **68.00%** | **64.72%** | 45.69% | 53.56% |
 
-### Final Model
+### Model selection
 
-The Random Forest with 200 trees is selected as the final model because it achieved the highest F1 score and the highest recall for the successful class among the tested models, providing a better balance between identifying successful and failed projects.
+Gradient Boosting achieved the highest overall accuracy at **68.00%**.
 
-The final model achieved:
+However, the **200-tree Random Forest** achieved:
 
-- Accuracy: **67.55%**
-- Precision: **61.44%**
-- Recall: **52.76%**
-- F1 Score: **56.77%**
+- The highest F1 score: **56.77%**
+- The highest recall for the successful class: **52.76%**
+- A balanced precision-recall performance
 
-Gradient Boosting achieved slightly higher accuracy and precision, but its recall and F1 score were lower than those of the selected 200-tree Random Forest.
+Therefore, the **Random Forest with 200 trees** was selected as the final model.
 
-## 8. Project Structure
+This selection prioritizes a better balance between identifying successful projects and avoiding incorrect predictions rather than relying on accuracy alone.
 
-```text
-Kickstarter-Success-Prediction/
-│
-├── data/
-│   └── ks-projects-201801.csv
-│
-├── models/
-│   └── random_forest_model.joblib
-│
-├── results/
-│   ├── model_comparison.csv
-│   ├── final_predictions.csv
-│   ├── model_comparison.png
-│   └── confusion_matrix.png
-│
-├── src/
-│   ├── data_preprocessing.py
-│   ├── train_models.py
-│   ├── predict.py
-│   └── visualize_results.py
-│
-├── .gitignore
-├── README.md
-└── requirements.txt
-```
+---
 
-## 9. Installation
+## Confusion Matrix
 
-### Step 1: Clone the repository
-
-```bash
-git clone <YOUR_PRIVATE_GITHUB_REPOSITORY_URL>
-cd Kickstarter-Success-Prediction
-```
-
-### Step 2: Create a virtual environment
-
-Windows:
-
-```powershell
-python -m venv venv
-```
-
-Activate it:
-
-```powershell
-venv\Scripts\activate
-```
-
-### Step 3: Install dependencies
-
-```powershell
-pip install -r requirements.txt
-```
-
-## 10. Dataset Setup
-
-Place the dataset inside the `data` folder:
+The final Random Forest model produced the following confusion matrix on the test set:
 
 ```text
-data/
-└── ks-projects-201801.csv
-```
+                    Predicted
+                  Failed  Successful
 
-The dataset is not generated by the project code, so it must be downloaded separately if it is not included in the repository.
-
-## 11. How to Run
-
-All commands should be executed from the project root directory.
-
-### Train the Models
-
-```powershell
-python src/train_models.py
-```
-
-This will:
-
-- Load and preprocess the dataset.
-- Train all four models.
-- Evaluate each model.
-- Generate `results/model_comparison.csv`.
-- Generate `results/final_predictions.csv`.
-- Save the final Random Forest model to `models/random_forest_model.joblib`.
-
-### Generate Visualizations
-
-```powershell
-python src/visualize_results.py
-```
-
-This generates:
-
-```text
-results/model_comparison.png
-results/confusion_matrix.png
-```
-
-The confusion matrix is calculated directly from the actual and predicted labels saved during model evaluation.
-
-### Make a New Prediction
-
-```powershell
-python src/predict.py
-```
-
-The script asks for project information such as:
-
-- Funding goal
-- Campaign duration
-- Launch year
-- Launch month
-- Project-name length
-- Main category
-- Category
-- Country
-- Currency
-
-It then outputs:
-
-- Predicted result: SUCCESSFUL or FAILED
-- Probability of failure
-- Probability of success
-
-## 12. Example Prediction
-
-Example input:
-
-```text
-Goal: 5000
-Duration: 30 days
-Launch year: 2017
-Launch month: 6
-Name length: 25
-Main category: Games
-Category: Tabletop Games
-Country: US
-Currency: USD
-```
-
-Example output from the trained model:
-
-```text
-Prediction: SUCCESSFUL
-Probability of Failure: 35.00%
-Probability of Success: 65.00%
-```
-
-The probability values depend on the trained model and input characteristics.
-
-## 13. Reproducibility
-
-The project uses fixed random seeds where applicable:
-
-```python
-random_state=42
-```
-
-The train/test split is stratified to preserve the class distribution between the training and testing sets.
-
-Model evaluation metrics and visualization data are generated programmatically rather than manually entered.
-
-## 14. Limitations
-
-The current model has several limitations:
-
-- It uses mainly project metadata and does not perform detailed natural-language analysis of project descriptions.
-- It does not use image or video information from campaigns.
-- A random train/test split is used rather than a time-based split.
-- The model's performance is limited by the selected features and algorithms.
-- The prediction should be treated as a machine-learning estimate rather than a guarantee of campaign success.
-
-## 15. Future Improvements
-
-Possible extensions include:
-
-- TF-IDF or transformer-based analysis of project descriptions.
-- Sentiment analysis of project text.
-- Word embeddings for project titles and descriptions.
-- Feature engineering based on campaign timing and category trends.
-- Hyperparameter tuning.
-- Cross-validation.
-- Time-based evaluation.
-- Ensemble or stacking approaches.
-- Incorporation of additional pre-launch project information.
-
-## 16. Technologies Used
-
-- Python
-- Pandas
-- NumPy
-- Scikit-learn
-- Matplotlib
-- Joblib
-
-## 17. Conclusion
-
-This project demonstrates an end-to-end machine learning workflow for Kickstarter project success prediction. The workflow includes data preprocessing, feature engineering, multiple classification models, automated evaluation, model comparison, visualization, model persistence, and interactive prediction.
-
-Among the tested models, the 200-tree Random Forest provided the strongest F1 score and successful-class recall and was therefore selected as the final model.
+Actual Failed      30673      8871
+Actual Successful  12655     14136
